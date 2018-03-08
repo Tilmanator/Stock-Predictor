@@ -5,6 +5,7 @@ import pandas as pd
 # Want to make this a module but it doesnt work for some reason
 import data
 
+from sklearn.preprocessing import MinMaxScaler
 import matplotlib.pyplot as plt
 
 
@@ -14,7 +15,16 @@ def parser(x):
 
 series = pd.read_csv('appleStock.csv', header=0, parse_dates=[0], index_col=0, date_parser=parser, usecols=(0,3,4,5))
 y = pd.read_csv('appleStock.csv', header=0, usecols=(1,2), index_col=None).drop(columns=['volume'])
+scaler = MinMaxScaler()
 
+# Feature scaling -1 to 1
+def scale(data):
+    scaler.fit(data)
+    return scaler.transform(data)
+
+
+def inverse(data):
+    return scaler.inverse_transform(data)
 
 series = series.values.tolist()
 
@@ -23,6 +33,7 @@ for i in series:
     i.insert(0,1)
 
 series = np.asarray(series)
+# series = scale(series)
 
 # Split into train/test data set
 n = int(len(series)*0.25)
@@ -50,6 +61,10 @@ hyp = tf.matmul(X, theta)
 cost = tf.reduce_sum(tf.pow(hyp- Y, 2))/(2*num_samples)
 # Cost could be mse
 # cost = tf.reduce_mean(tf.square(hyp - Y))
+
+# Add regularization
+regularizer = tf.nn.l2_loss(theta)
+cost = tf.reduce_mean(cost + 0.01 * regularizer)
 
 # Adam or gradient descent?
 optimizer = tf.train.AdamOptimizer(learning_rate).minimize(cost)
